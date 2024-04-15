@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS Feed Carousel</title>
+    <!-- Include Slick CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css"/>
+    <!-- Include Slick theme CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css"/>
+    <style>
+        /* Custom styling for the carousel */
+        .carousel-container {
+            width: 80%;
+            margin: 0 auto; /* Center the carousel */
+        }
+        .carousel-item {
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 20px;
+            margin-right: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #333; /* Dark background color */
+            color: #fff; /* White text color */
+            height: 200px; /* Set the height of each carousel item */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative; /* Enable relative positioning for the item */
+        }
+        .carousel-item:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .carousel-item h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .carousel-item .info {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        .carousel-item .read-more {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            color: #007bff; /* Change text color to a professional blue */
+            border: 0px solid #007bff; /* Add border */
+            border-radius: 4px;
+            background-color: transparent; /* Make background transparent */
+            font-family: Arial, sans-serif; /* Choose a common font */
+            font-size: 14px; /* Adjust font size */
+            cursor: pointer; /* Change cursor to pointer */
+            transition: background-color 0.3s, transform 0.3s, color 0.3s; /* Add transition for smooth hover effect */
+            text-decoration: underline;
+        }
+        .carousel-item-content {
+            overflow: auto; /* Enable scrolling for longer content */
+        }
+        .medium-label {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #000; /* Black text color */
+            background-color: #fff; /* White background color */
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+<div class="carousel-container">
+    <div class="carousel"></div>
+</div>
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Include Slick JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $.ajax({
+            url: 'https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@mobileledge',
+            dataType: 'json',
+            success: function(data) {
+                renderCarousel(data);
+            }
+        });
+
+        function renderCarousel(data) {
+            var articles = data.items;
+            var carousel = $('.carousel');
+            articles.forEach(function(article) {
+                var title = article.title;
+                var date = new Date(article.pubDate);
+                var owner = article.author || article.creator || "Unknown";
+                var slide = '<div class="carousel-item">' +
+                    '<div class="medium-label">Medium</div>' +
+                    '<div class="carousel-item-content">' +
+                    '<h3>' + title + '</h3>' +
+                    '<div class="info">' + formatDate(date) + ' | ' + owner + '</div>' +
+                    '</div>' +
+                    '<button class="btn read-more">Read more</button>' +
+                    '</div>';
+                carousel.append(slide);
+            });
+
+            // Initialize Slick carousel
+            carousel.slick({
+                slidesToShow: 3,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 2000,
+                dots: true,
+                arrows: true,
+                responsive: [
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 2
+                        }
+                    },
+                    {
+                        breakpoint: 480,
+                        settings: {
+                            slidesToShow: 1
+                        }
+                    }
+                ]
+            });
+
+            // Click event handler for "Read More" button
+            carousel.on('click', '.read-more', function() {
+                var index = $(this).closest('.carousel-item').index();
+                // Retrieve the corresponding article from the data
+                var article = articles[index];
+                // Open the article's URL in a new window
+                window.open(article.link, '_blank');
+            });
+        }
+
+        // Function to format date and time
+        function formatDate(date) {
+            var options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+    });
+</script>
+
+</body>
+</html>
